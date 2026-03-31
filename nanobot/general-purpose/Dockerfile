@@ -7,9 +7,11 @@ LABEL org.opencontainers.image.title="Nanobot" \
       org.opencontainers.image.source="https://github.com/HKUDS/nanobot"
 
 # 1. System Setup
-# Enable experimental Nix features (Flakes)
+# Enable experimental Nix features (Flakes) and fix seccomp issues in Docker/CI
 RUN mkdir -p /etc/nix && \
-    echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
+    echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf && \
+    echo "filter-syscalls = false" >> /etc/nix/nix.conf && \
+    echo "sandbox = false" >> /etc/nix/nix.conf
 
 # Prepare application directory
 # We use UID 1000 (standard for the first non-root user)

@@ -49,6 +49,8 @@ jobs:
       # Push if not a pull request and references the main branch
       docker_push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) }}
       build_required: ${{ needs.setup.outputs.should_run_build }}
+      image_name: ${{ matrix.image_type == '.' && inputs.image_group || format('{0}/{1}', inputs.image_group, matrix.image_type) }}
+      context_path: ${{ matrix.image_type == '.' && format('./{0}', inputs.image_group) || format('./{0}/{1}', inputs.image_group, matrix.image_type) }}
     needs: [setup]
     runs-on: ubuntu-latest
     strategy:
@@ -79,7 +81,7 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5
         with:
           images: |
-            ghcr.io/${{ github.repository }}/${{ inputs.image_group }}/${{ matrix.image_type }}
+            ghcr.io/${{ github.repository }}/${{ env.image_name }}
           labels: |
             org.opencontainers.image.authors="@${{ github.repository_owner }} Github Org"
             org.opencontainers.image.licenses=BSD-3
@@ -88,7 +90,7 @@ jobs:
             # semver
             type=semver,pattern={{major}},prefix=v,event=tag
             type=semver,pattern={{major}}.{{minor}},prefix=v,event=tag
-            type=semver,pattern={{major}}.{{minor}}.{{patch}},prefix=v,event=tag
+            type=semver,pattern={{major}}.{{minor}}.patch,prefix=v,event=tag
             # latest
             type=raw,event=push,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
           flavor: |
@@ -100,7 +102,7 @@ jobs:
         if: env.build_required
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3
         with:
-          registry: ghcr.io/${{ github.repository }}/${{ inputs.image_group }}/${{ matrix.image_type }}
+          registry: ghcr.io/${{ github.repository }}/${{ env.image_name }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -111,7 +113,7 @@ jobs:
         with:
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          context: ./${{ inputs.image_group }}/${{ matrix.image_type }}
+          context: ${{ env.context_path }}
           build-args: |
             IMAGE_COMMIT=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             IMAGE_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
@@ -126,6 +128,6 @@ jobs:
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
         id: attest
         with:
-          subject-name: ghcr.io/${{ github.repository }}/${{ inputs.image_group }}/${{ matrix.image_type }}
+          subject-name: ghcr.io/${{ github.repository }}/${{ env.image_name }}
           subject-digest: ${{ steps.build_push.outputs.digest }}
           push-to-registry: ${{ env.docker_push }}

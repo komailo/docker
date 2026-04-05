@@ -1,6 +1,6 @@
 # Use a lightweight and secure Alpine Linux base
 # Pinned to 3.20.0 with SHA256 for reproducibility
-ARG ALPINE_IMAGE_TAG=3.23.3
+ARG ALPINE_IMAGE_TAG=3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
 
 FROM alpine:${ALPINE_IMAGE_TAG}
 

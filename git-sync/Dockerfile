@@ -22,7 +22,7 @@ RUN apk update --no-cache && \
 
 # Download and install git-sync scripts
 # renovate: datasource=github-commits depName=simonthum/git-sync
-ARG GIT_SYNC_COMMIT=b991840c5533c010adda58015de44ba36d6bc1d0
+ARG GIT_SYNC_VERSION=b991840c5533c010adda58015de44ba36d6bc1d0
 RUN curl -sSL https://raw.githubusercontent.com/simonthum/git-sync/${GIT_SYNC_COMMIT}/git-sync -o /usr/local/bin/git-sync && \
     curl -sSL https://raw.githubusercontent.com/simonthum/git-sync/${GIT_SYNC_COMMIT}/contrib/git-sync-on-inotify -o /usr/local/bin/git-sync-on-inotify && \
     chmod +x /usr/local/bin/git-sync /usr/local/bin/git-sync-on-inotify

@@ -3,12 +3,10 @@ name: Reusable Image Build Workflow
 on:
   workflow_call:
     inputs:
-      image_group:
+      image_paths:
         required: true
         type: string
-      image_type:
-        required: true
-        type: string
+        description: "Comma-separated list of image directory paths (e.g., 'git-sync,github-runner/general-purpose')"
       platforms:
         required: true
         type: string
@@ -20,24 +18,24 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      image_type: ${{ steps.set_variables.outputs.image_type }}
+      image_paths: ${{ steps.set_variables.outputs.image_paths }}
       should_run_build: ${{ steps.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' }}
     steps:
       - id: set_variables
         run: |
-          image_type_json=$(echo -n $image_type | jq -R -s -c 'split(",")')
-          echo "image_type=$image_type_json" >> $GITHUB_OUTPUT
-        env:
-          image_type: ${{ inputs.image_type }}
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
+          # Convert comma-separated paths to a JSON array for the matrix
+          image_paths_json=$(echo -n "${{ inputs.image_paths }}" | jq -R -s -c 'split(",") | map(gsub("^[./]+|/$"; ""))')
+          echo "image_paths=$image_paths_json" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
         id: changes
         with:
           filters: |
             src:
-              - '.github/workflows/${{ inputs.image_group }}-image-build.yaml'
-              - '${{ inputs.image_group }}/**'
               - '.github/workflows/reusable-image-build.yaml'
+              - '**/Dockerfile'
+              - '**/*.nix'
+              - '**/*.txt'
 
   build:
     permissions:
@@ -46,39 +44,36 @@ jobs:
       contents: read
       attestations: write
     env:
-      # Push if not a pull request and references the main branch
       docker_push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) }}
       build_required: ${{ needs.setup.outputs.should_run_build }}
-      image_name: ${{ matrix.image_type == '.' && inputs.image_group || format('{0}/{1}', inputs.image_group, matrix.image_type) }}
-      context_path: ${{ matrix.image_type == '.' && format('./{0}', inputs.image_group) || format('./{0}/{1}', inputs.image_group, matrix.image_type) }}
+      # Image name is derived directly from the path
+      image_name: ${{ matrix.image_path }}
+      context_path: ./${{ matrix.image_path }}
     needs: [setup]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image_type: ${{ fromJson(needs.setup.outputs.image_type) }}
+        image_path: ${{ fromJson(needs.setup.outputs.image_paths) }}
       fail-fast: false
     steps:
       - name: Checkout Code
         if: env.build_required
-        id: checkout_code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Set up QEMU
         if: env.build_required
-        uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         if: env.build_required
-        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4
+        uses: docker/setup-buildx-action@v3
         with:
           driver-opts: network=host
 
-      # release version is the name of the tag i.e. v0.10.0 with the type appended i.e. v0.10.0-general-purpose
-      # if the ref is main then the release version is latest with the type appended i.e. latest-general-purpose
       - name: Docker meta
         if: env.build_required
         id: meta
-        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6
+        uses: docker/metadata-action@v5
         with:
           images: |
             ghcr.io/${{ github.repository }}/${{ env.image_name }}
@@ -87,20 +82,16 @@ jobs:
             org.opencontainers.image.licenses=BSD-3
             org.opencontainers.image.source=${{ github.repository_url }}
           tags: |
-            # semver
             type=semver,pattern={{major}},prefix=v,event=tag
             type=semver,pattern={{major}}.{{minor}},prefix=v,event=tag
             type=semver,pattern={{major}}.{{minor}}.patch,prefix=v,event=tag
-            # latest
             type=raw,event=push,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
           flavor: |
-            # This is disabled here so we can use the raw form above
             latest=false
-            # Suffix is not used here since there's no way to disable it above
 
       - name: Log in to the Container registry
         if: env.build_required
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io/${{ github.repository }}/${{ env.image_name }}
           username: ${{ github.actor }}
@@ -109,7 +100,7 @@ jobs:
       - name: "Build and if required push image"
         if: env.build_required
         id: build_push
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
+        uses: docker/build-push-action@v6
         with:
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -125,8 +116,7 @@ jobs:
 
       - name: Generate artifact attestation
         if: env.build_required && env.docker_push
-        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4
-        id: attest
+        uses: actions/attest-build-provenance@v1
         with:
           subject-name: ghcr.io/${{ github.repository }}/${{ env.image_name }}
           subject-digest: ${{ steps.build_push.outputs.digest }}

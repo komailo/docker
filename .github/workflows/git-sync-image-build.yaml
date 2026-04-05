@@ -1,4 +1,4 @@
-name: GitLab Runner
+name: Git Sync
 
 on:
   push:
@@ -6,7 +6,13 @@ on:
       - main
     tags:
       - "*"
+    paths:
+      - "git-sync/**"
+      - ".github/workflows/git-sync-image-build.yaml"
   pull_request:
+    paths:
+      - "git-sync/**"
+      - ".github/workflows/git-sync-image-build.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -16,7 +22,7 @@ jobs:
   image-build:
     uses: ./.github/workflows/reusable-image-build.yaml
     with:
-      image_paths: gitlab-runner/general-purpose
+      image_paths: git-sync
       platforms: linux/amd64,linux/arm64
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}

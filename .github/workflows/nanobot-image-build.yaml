@@ -12,13 +12,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
-# Everything below should be common under all branches
 jobs:
   image-build:
     uses: ./.github/workflows/reusable-image-build.yaml
     with:
-      image_group: nanobot
-      image_type: general-purpose
+      image_paths: nanobot/general-purpose
       platforms: linux/amd64,linux/arm64
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}

@@ -9,24 +9,25 @@ This repository serves as a centralized registry for a wide variety of container
 - **DevOps & Specialized Tools**: A wide range of utilities pinned to specific versions for reproducibility.
 
 ## Project Architecture
-The repository supports two directory structures for organizing images:
+Images are organized by their directory structure, which directly maps to their name in the registry.
 
 ### 1. Grouped Structure (Recommended for multiple variants)
 Organize images by a common group and specific type.
 - **Structure**: `<image-group>/<image-type>/Dockerfile`
 - **Example**: `github-runner/general-purpose/Dockerfile`
-- **Workflow Config**: `image_group: github-runner`, `image_type: general-purpose`
+- **Workflow Config**: `image_paths: github-runner/general-purpose`
 - **Resulting Image**: `ghcr.io/repo/github-runner/general-purpose`
 
 ### 2. Flat Structure (Recommended for single-purpose images)
 Place the Dockerfile directly within the group folder.
 - **Structure**: `<image-group>/Dockerfile`
 - **Example**: `my-tool/Dockerfile`
-- **Workflow Config**: `image_group: my-tool`, `image_type: .`
+- **Workflow Config**: `image_paths: my-tool`
 - **Resulting Image**: `ghcr.io/repo/my-tool`
 
 ### Infrastructure
 - `.github/workflows/`: Centralized build logic using a reusable workflow (`reusable-image-build.yaml`).
+- All workflows use `image_paths` (comma-separated for multiple images) to define what to build.
 
 ## Building and Running
 
@@ -48,12 +49,13 @@ docker build -t job-executor:local -f job-executor/general-purpose/Dockerfile .
 
 ### Image Definitions
 - **Multi-platform**: All images must support both `linux/amd64` and `linux/arm64` architectures.
-- **Reproducibility**: Use `ARG` for version pinning and include `sha256` digests for all base images.
+- **Reproducibility**: Use `ARG` for version pinning and include `sha256` digests for all base images. Use Renovate comment hints (e.g., `# renovate: datasource=... depName=...`) for `ARG` variables that pin external dependencies to ensure they are automatically tracked and updated.
 - **Layer Optimization**: Combine `RUN` commands where possible to minimize image layers and use `--no-cache` for package managers.
+- **Metadata Labels**: Do **NOT** add `org.opencontainers.image.source` label in Dockerfiles; the CI workflow automatically adds this with the correct repository URL.
 
 ### Workflow Integration
 - New images should be integrated by creating a group-specific workflow in `.github/workflows/` that calls the `reusable-image-build.yaml` workflow.
-- Ensure the `image_group` and `image_type` inputs match the directory structure.
+- Pass the relative path to the image directory in the `image_paths` input.
 
 ### Versioning
 - This project follows Semantic Versioning for tags.

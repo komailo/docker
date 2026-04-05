@@ -80,7 +80,7 @@ jobs:
           labels: |
             org.opencontainers.image.authors="@${{ github.repository_owner }} Github Org"
             org.opencontainers.image.licenses=BSD-3
-            org.opencontainers.image.source=${{ github.repository_url }}
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
           tags: |
             type=semver,pattern={{major}},prefix=v,event=tag
             type=semver,pattern={{major}}.{{minor}},prefix=v,event=tag

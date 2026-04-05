@@ -51,6 +51,7 @@ docker build -t job-executor:local -f job-executor/general-purpose/Dockerfile .
 - **Multi-platform**: All images must support both `linux/amd64` and `linux/arm64` architectures.
 - **Reproducibility**: Use `ARG` for version pinning and include `sha256` digests for all base images.
 - **Layer Optimization**: Combine `RUN` commands where possible to minimize image layers and use `--no-cache` for package managers.
+- **Metadata Labels**: Do **NOT** add `org.opencontainers.image.source` label in Dockerfiles; the CI workflow automatically adds this with the correct repository URL.
 
 ### Workflow Integration
 - New images should be integrated by creating a group-specific workflow in `.github/workflows/` that calls the `reusable-image-build.yaml` workflow.

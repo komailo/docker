@@ -3,8 +3,7 @@ FROM nixos/nix:latest@sha256:0b1530edf840d9af519c7f3970cafbbed68d9d9554a83cc9adc
 
 # Metadata
 LABEL org.opencontainers.image.title="Nanobot" \
-      org.opencontainers.image.description="An ultra-lightweight personal AI assistant and agent framework" \
-      org.opencontainers.image.source="https://github.com/HKUDS/nanobot"
+      org.opencontainers.image.description="An ultra-lightweight personal AI assistant and agent framework"
 
 # 1. System Setup
 # Enable experimental Nix features (Flakes) and fix seccomp issues in Docker/CI

@@ -1,6 +1,6 @@
 # Use a lightweight and secure Alpine Linux base
 # Pinned to 3.20.0 with SHA256 for reproducibility
-ARG ALPINE_IMAGE_TAG=3.20.0@sha256:beefed29302a405105751f887f0b771e390735e8d3a952f2d14666f72ba1a352
+ARG ALPINE_IMAGE_TAG=3.23.3
 
 FROM alpine:${ALPINE_IMAGE_TAG}
 
@@ -13,11 +13,11 @@ FROM alpine:${ALPINE_IMAGE_TAG}
 RUN apk update --no-cache && \
     apk upgrade --no-cache && \
     apk add --no-cache \
-        bash \
-        git \
-        openssh-client \
-        inotify-tools \
-        curl && \
+    bash \
+    git \
+    openssh-client \
+    inotify-tools \
+    curl && \
     rm -rf /var/cache/apk/*
 
 # Download and install git-sync scripts
@@ -39,7 +39,6 @@ USER gitsync
 WORKDIR /git
 
 # Metadata
-LABEL org.opencontainers.image.source="https://github.com/simonthum/git-sync" \
-      org.opencontainers.image.description="Lightweight and secure git-sync image based on Alpine Linux"
+LABEL org.opencontainers.image.description="Lightweight and secure git-sync image based on Alpine Linux"
 
 ENTRYPOINT ["git-sync"]

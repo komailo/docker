@@ -16,7 +16,7 @@ jobs:
   image-build:
     uses: ./.github/workflows/reusable-image-build.yaml
     with:
-      image_paths: nanobot/general-purpose
+      image_paths: nanobot
       platforms: linux/amd64,linux/arm64
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}

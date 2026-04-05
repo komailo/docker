@@ -49,7 +49,7 @@ docker build -t job-executor:local -f job-executor/general-purpose/Dockerfile .
 
 ### Image Definitions
 - **Multi-platform**: All images must support both `linux/amd64` and `linux/arm64` architectures.
-- **Reproducibility**: Use `ARG` for version pinning and include `sha256` digests for all base images.
+- **Reproducibility**: Use `ARG` for version pinning and include `sha256` digests for all base images. Use Renovate comment hints (e.g., `# renovate: datasource=... depName=...`) for `ARG` variables that pin external dependencies to ensure they are automatically tracked and updated.
 - **Layer Optimization**: Combine `RUN` commands where possible to minimize image layers and use `--no-cache` for package managers.
 - **Metadata Labels**: Do **NOT** add `org.opencontainers.image.source` label in Dockerfiles; the CI workflow automatically adds this with the correct repository URL.
 

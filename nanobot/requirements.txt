@@ -1,1 +1,1 @@
-nanobot-ai[api,matrix,weixin,wecom]==0.1.5.post2
+nanobot-ai[api,matrix,weixin,wecom]==0.1.5.post3

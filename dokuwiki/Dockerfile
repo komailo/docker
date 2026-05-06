@@ -1,5 +1,5 @@
 # renovate: datasource=docker depName=php
-ARG PHP_IMAGE_TAG=7-apache-bullseye@sha256:c9d7e608f73832673479770d66aacc8100011ec751d1905ff63fae3fe2e0ca6d
+ARG PHP_IMAGE_TAG=8-apache-bullseye@sha256:c22cbcbe8cc4f2bbf8cc4b390e2ec483b59ba0d90d907b2c78d26493da20c23d
 
 FROM php:${PHP_IMAGE_TAG} AS mellon-build
 

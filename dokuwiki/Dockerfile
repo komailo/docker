@@ -15,7 +15,7 @@ RUN apt-get update -y --fix-missing && apt-get upgrade -y && \
     rm -rf /var/lib/apt/lists/*
 
 # renovate: datasource=github-tags depName=latchset/mod_auth_mellon
-ARG MOD_AUTH_MELLON_VERSION=0.18.1
+ARG MOD_AUTH_MELLON_VERSION=0.19.1
 
 RUN cd /tmp \
     && git clone --branch v${MOD_AUTH_MELLON_VERSION} --depth 1 https://github.com/latchset/mod_auth_mellon.git \

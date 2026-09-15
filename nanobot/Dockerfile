@@ -1,5 +1,5 @@
 # Use nixos/nix as the base for a reproducible and extensible environment.
-FROM nixos/nix:latest@sha256:377d4887aca98f0dfa12971c1ea6d6a625a435d8b610d4c95a436843da6fbfd1
+FROM nixos/nix:latest@sha256:7a007c766426c1877758ddc5cb87a965ac131fc78c582ce0083d922d51ae945c
 
 # Metadata
 LABEL org.opencontainers.image.title="Nanobot" \
